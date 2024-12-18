@@ -16,7 +16,7 @@ if gpus:
 
 with tf.device('/GPU:0'):
     resnet_model = tf.keras.models.load_model('/home/axernox/Resnet50/res50_canny_1.keras', compile=False)
-    vgg_model = tf.keras.models.load_model('/home/axernox/Resnet50/res50_canny_1.keras', compile=False)
+    vgg_model = tf.keras.models.load_model('/home/axernox/Resnet50/vgg19_canny_1.keras', compile=False)
     custom_model = tf.keras.models.load_model('/home/axernox/Resnet50/customcnn_canny.keras', compile=False)
 
 resnet_model.compile()
@@ -73,9 +73,16 @@ def canny(image):
 def preprocess_image(image, target_size=(256, 256)):
     image = image.convert("RGB")
     image = image.resize(target_size)
-    image = keras.utils.img_to_array(image)  # Normalize
+    image = keras.utils.img_to_array(image) 
     print(image.shape)
-    return np.expand_dims(image, axis=0)  # Add batch dimension
+    return np.expand_dims(image, axis=0)  
+
+def preprocess_image1(image, target_size=(224, 224)):
+    image = image.convert("RGB")
+    image = image.resize(target_size)
+    image = keras.utils.img_to_array(image) 
+    print(image.shape)
+    return np.expand_dims(image, axis=0) 
 
 # Function to make prediction and get confidence score
 def get_prediction(model, image):
@@ -148,8 +155,6 @@ if img_upload is not None:
     st.markdown('<div class="centered-image">', unsafe_allow_html=True)
     st.image(filtered_image, caption="After Filters", use_column_width = True)
     st.markdown('</div>', unsafe_allow_html=True)
-    preprocessed_image = preprocess_image(filtered_image)
-    print(preprocessed_image.shape)
 
 
     option = st.selectbox(
@@ -158,6 +163,9 @@ if img_upload is not None:
     )
     st.write("Model selected: ", option)
     selected_model = models[option]
+    print(selected_model)
+    preprocessed_image = preprocess_image(filtered_image)
+    print(preprocessed_image.shape)
 
     #st.button("Predict")
 
@@ -181,6 +189,8 @@ if img_upload is not None:
 
     with col2:
         if st.button("Predict"):
+            if(option == "VGG19"):
+                preprocessed_image = preprocess_image1(filtered_image)
             label, confidence = get_prediction(selected_model, preprocessed_image)
             st.write(f"Prediction: **{label}**") 
             st.write(f"Confidence Score: **{confidence:.2f}%**")
